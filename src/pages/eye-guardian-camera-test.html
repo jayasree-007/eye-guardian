@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eye Guardian</title>
+  <style>
+    :root {
+      --primary-color: #4e54c8;
+      --secondary-color: #f8f9fa;
+      --border-color: #e9ecef;
+      --bg-color: #ffffff;
+      --status-danger-bg: #f8d7da;
+      --status-danger-text: #721c24;
+      --status-warning-bg: #fff3cd;
+      --status-warning-text: #856404;
+      --status-good-bg: #d4edda;
+      --status-good-text: #155724;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: var(--secondary-color);
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: var(--primary-color);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    #video {
+      width: 100%;
+      display: block;
+      background-color: #000;
+    }
+    
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .action-button {
+      padding: 10px 20px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    
+    .action-button:hover {
+      background-color: #3a3f9e;
+    }
+    
+    .action-button:disabled {
+      background-color: #a0a0a0;
+      cursor: not-allowed;
+    }
+    
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .metric {
+      padding: 15px;
+      background-color: var(--bg-color);
+      border-radius: 5px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+    
+    .metric-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-top: 5px;
+    }
+    
+    .log-section {
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 15px;
+      background-color: var(--bg-color);
+      border-radius: 5px;
+      font-family: monospace;
+      border: 1px solid var(--border-color);
+    }
+    
+    .log-entry {
+      margin-bottom: 5px;
+      padding: 5px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .log-time {
+      color: #666;
+      margin-right: 10px;
+    }
+    
+    .log-info {
+      color: var(--primary-color);
+    }
+    
+    .log-warning {
+      color: #f0ad4e;
+    }
+    
+    .log-error {
+      color: #d9534f;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    
+    .status-good {
+      background-color: #28a745;
+    }
+    
+    .status-warning {
+      background-color: #ffc107;
+    }
+    
+    .status-danger {
+      background-color: #dc3545;
+    }
+    
+    .debug-info {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: var(--bg-color);
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      font-family: monospace;
+      font-size: 14px;
+    }
+    
+    .distance-warning {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 5px;
+      background-color: var(--status-danger-bg);
+      color: var(--status-danger-text);
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: none;
+      z-index: 1000;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .distance-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    
+    .distance-status-text {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    
+    .blink-alert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ff9800;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 5px;
+      font-weight: bold;
+      z-index: 1000;
+      animation: fadeInOut 3s ease-in-out;
+    }
+    
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, -20px); }
+      10% { opacity: 1; transform: translate(-50%, 0); }
+      90% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -20px); }
+    }
+    
+    .blink-counter {
+      position: absolute;
+      top: 50px;
+      right: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 24px;
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    /* Add styles for statistics modal */
+    .stats-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .stats-content {
+      background-color: var(--bg-color);
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .stats-header {
+      text-align: center;
+      margin-bottom: 20px;
+      color: var(--primary-color);
+    }
+
+    .stats-section {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: var(--secondary-color);
+      border-radius: 5px;
+    }
+
+    .stats-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+
+    .stats-value {
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .stats-suggestion {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: var(--status-good-bg);
+      color: var(--status-good-text);
+      border-radius: 5px;
+      font-style: italic;
+    }
+
+    .stats-warning {
+      background-color: var(--status-warning-bg);
+      color: var(--status-warning-text);
+    }
+
+    .stats-danger {
+      background-color: var(--status-danger-bg);
+      color: var(--status-danger-text);
+    }
+
+    .close-stats {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--primary-color);
+    }
+
+    /* Add styles for login prompt */
+    .login-prompt {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    
+    .login-prompt-content {
+      background-color: var(--bg-color);
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .login-prompt h3 {
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+    
+    .login-prompt p {
+      margin-bottom: 20px;
+      color: #666;
+    }
+    
+    .login-prompt-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Eye Guardian</h1>
+    
+    <div class="video-container">
+      <video id="video" playsinline></video>
+      <canvas id="canvas"></canvas>
+    </div>
+    
+    <div class="controls">
+      <button id="start-button" class="action-button">Start Tracking</button>
+      <button id="stop-button" class="action-button" disabled>Stop Tracking</button>
+      <button id="reset-rl" class="action-button">Reset RL System</button>
+      <button id="voice-toggle" class="action-button">Voice On</button>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div>Current Blink Rate</div>
+        <div id="current-blink-rate" class="metric-value">-</div>
+        <div class="blink-counter">Blinks: 0 (0/min)</div>
+      </div>
+      <div class="metric">
+        <div>Screen Distance</div>
+        <div id="screen-distance" class="metric-value">-</div>
+        <div id="distance-status" class="distance-status">
+          <span class="status-indicator"></span>
+          <span class="distance-status-text">-</span>
+        </div>
+      </div>
+      <div class="metric">
+        <div>Current State</div>
+        <div id="current-state" class="metric-value">-</div>
+      </div>
+    </div>
+    
+    <div class="log-section">
+      <h3>System Log</h3>
+      <div id="log"></div>
+    </div>
+    
+    <div class="debug-info">
+      <h3>Debug Information</h3>
+      <div id="debug"></div>
+    </div>
+  </div>
+  
+  <div id="distance-warning" class="distance-warning">
+    Please maintain a safe distance from the screen (at least 50cm)
+  </div>
+  
+  <div id="blink-counter" class="blink-counter">Blinks: 0</div>
+
+  <!-- Add Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Load TensorFlow.js and MediaPipe -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1632437807/camera_utils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1632437807/drawing_utils.js"></script>
+  
+  <!-- Load the RL module first -->
+  <script src="../../public/js/eye-guardian-rl-fixed.js"></script>
+  
+  <script>
+    // Wait for RL module to be available
+    function waitForRLModule(callback) {
+      if (window.EyeGuardianRL) {
+        callback();
+      } else {
+        console.log('Waiting for RL module to load...');
+        setTimeout(() => waitForRLModule(callback), 100);
+      }
+    }
+
+    // DOM elements
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const startButton = document.getElementById('start-button');
+    const stopButton = document.getElementById('stop-button');
+    const resetRlButton = document.getElementById('reset-rl');
+    const currentBlinkRateEl = document.getElementById('current-blink-rate');
+    const currentStateEl = document.getElementById('current-state');
+    const logEl = document.getElementById('log');
+    const debugEl = document.getElementById('debug');
+    const screenDistanceEl = document.getElementById('screen-distance');
+    const distanceStatusEl = document.getElementById('distance-status');
+    const distanceWarningEl = document.getElementById('distance-warning');
+    const blinkCounterEl = document.getElementById('blink-counter');
+    
+    // Variables for tracking
+    let faceMesh;
+    let camera;
+    let isTracking = false;
+    let blinkCount = 0;
+    let lastBlinkTime = Date.now();
+    let blinkRate = 0;
+    let lastBlinkRateUpdate = Date.now();
+    let isEyeClosed = false;
+    let eyeClosedStartTime = 0;
+    let eyeClosedDuration = 0;
+    let animationFrameId = null;
+    let lastDistanceWarning = 0;
+    let distanceWarningCooldown = 5000; // 5 seconds cooldown between warnings
+    let rlSystem = null;
+    let isRLSystemReady = false;
+    let lastDistance = null;
+    let lastDebugUpdate = 0;
+    let blinkWindowStart = Date.now();
+    let blinkWindowDuration = 10000; // 10 seconds window for blink rate calculation
+    let blinkWindowCount = 0;
+    let lastBlinkAlert = 0;
+    let blinkAlertCooldown = 30000; // 30 seconds between blink alerts
+    let consecutiveLowEARCount = 0;
+    let consecutiveHighEARCount = 0;
+    let lastValidBlinkTime = Date.now();
+    let lastEARValues = []; // Store last few EAR values for smoothing
+    let blinkHistory = []; // Store timestamps of recent blinks
+    let totalBlinks = 0;
+    let lastVoiceReminder = 0;
+    let voiceReminderCooldown = 15000; // 15 seconds cooldown
+    let speechSynthesis = window.speechSynthesis;
+    let isVoiceEnabled = true;
+    let sessionStartTime = null;
+    let lastMetrics = { blinkRate: 0, screenDistance: 0 };
+    let staringAlertCooldown = 30000; // 30 seconds cooldown between staring alerts
+    let lastStaringAlert = 0;
+    const MAX_STARING_DURATION = 60000; // 1 minute in milliseconds
+    
+    // Constants for eye tracking
+    const EAR_THRESHOLD = 0.25; // Simple threshold for eye closure
+    const MIN_BLINK_DURATION = 50; // Minimum duration for a valid blink (ms)
+    const MAX_BLINK_DURATION = 500; // Maximum duration for a valid blink (ms)
+    const CONSECUTIVE_FRAMES = 2; // Number of consecutive frames to confirm blink
+    const MIN_TIME_BETWEEN_BLINKS = 200; // Minimum time between blinks (ms)
+    
+    // Distance thresholds (in cm)
+    const MIN_SAFE_DISTANCE = 50;
+    const MAX_SAFE_DISTANCE = 80;
+    
+    // MediaPipe Face Mesh constants
+    const FACEMESH_TESSELATION = [
+      [127, 34], [34, 139], [139, 71], [71, 68], [68, 104], [104, 69], [69, 108], [108, 151],
+      [151, 337], [337, 332], [332, 297], [297, 338], [338, 10], [10, 109], [109, 67], [67, 103],
+      [103, 54], [54, 21], [21, 162], [162, 127]
+    ];
+    
+    const FACEMESH_RIGHT_EYE = [
+      [33, 7], [7, 163], [163, 144], [144, 145], [145, 153], [153, 154], [154, 155], [155, 133],
+      [133, 173], [173, 157], [157, 158], [158, 159], [159, 160], [160, 161], [161, 246], [246, 33]
+    ];
+    
+    const FACEMESH_LEFT_EYE = [
+      [362, 382], [382, 381], [381, 380], [380, 374], [374, 373], [373, 390], [390, 249], [249, 263],
+      [263, 466], [466, 388], [388, 387], [387, 386], [386, 385], [385, 384], [384, 398], [398, 362]
+    ];
+    
+    const FACEMESH_FACE_OVAL = [
+      [10, 338], [338, 297], [297, 332], [332, 284], [284, 251], [251, 389], [389, 356], [356, 454],
+      [454, 323], [323, 361], [361, 288], [288, 397], [397, 365], [365, 379], [379, 378], [378, 400],
+      [400, 377], [377, 152], [152, 148], [148, 176], [176, 149], [149, 150], [150, 136], [136, 172],
+      [172, 58], [58, 132], [132, 93], [93, 234], [234, 127], [127, 162], [162, 21], [21, 54], [54, 103],
+      [103, 67], [67, 109], [109, 10]
+    ];
+    
+    const FACEMESH_RIGHT_EYEBROW = [
+      [105, 66], [66, 107], [107, 55], [55, 65], [65, 52], [52, 53], [53, 46], [46, 124], [124, 35],
+      [35, 205], [205, 207], [207, 206], [206, 92], [92, 165], [165, 105]
+    ];
+    
+    const FACEMESH_LEFT_EYEBROW = [
+      [334, 296], [296, 334], [334, 293], [293, 300], [300, 276], [276, 283], [283, 282], [282, 295],
+      [295, 285], [285, 8], [8, 55], [55, 65], [65, 52], [52, 53], [53, 46], [46, 124], [124, 35],
+      [35, 205], [205, 207], [207, 206], [206, 92], [92, 165], [165, 105]
+    ];
+    
+    // Eye landmark indices for EAR calculation
+    const RIGHT_EYE = [33, 160, 158, 133, 153, 144];
+    const LEFT_EYE = [362, 385, 387, 263, 373, 380];
+    
+    // Constants for RL system
+    const RL_CONFIG = {
+      learningRate: 0.1,
+      discountFactor: 0.9,
+      minBlinkRate: 12,  // minimum blinks per minute
+      maxBlinkRate: 30,  // maximum blinks per minute
+      minDistance: 50,   // minimum safe distance in cm
+      maxDistance: 80,   // maximum safe distance in cm
+      stateUpdateInterval: 1000, // update state every second
+      actionCooldown: 5000      // minimum time between actions
+    };
+
+    // Variables for RL tracking
+    let lastActionTime = 0;
+    let currentState = 'initializing';
+    let rlStats = {
+      totalActions: 0,
+      successfulActions: 0,
+      lastAction: null,
+      lastState: null
+    };
+    
+    // Add new variables for adaptive thresholding
+    let recentEARValues = [];
+    let currentEARThreshold = EAR_THRESHOLD;
+    let eyeStateHistory = [];
+    let isPotentialBlink = false;
+    let potentialBlinkStartTime = 0;
+    
+    // Function to initialize metrics display
+    function initializeMetricsDisplay() {
+      currentBlinkRateEl.textContent = '0 blinks/min';
+      screenDistanceEl.textContent = '0.0 cm';
+      currentStateEl.textContent = 'Initializing...';
+      blinkCounterEl.textContent = 'Blinks: 0';
+    }
+
+    // Function to load the face mesh model
+    async function loadFaceMeshModel() {
+      addLogEntry('Loading face mesh model...', 'info');
+      
+      try {
+        // Create face mesh instance with optimized settings
+        faceMesh = new FaceMesh({
+          locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`;
+          }
+        });
+        
+        // Set optimized options for better face detection
+        faceMesh.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: true,
+          minDetectionConfidence: 0.8, // Increased for even better accuracy
+          minTrackingConfidence: 0.8   // Increased for even better accuracy
+        });
+        
+        // Set callback
+        faceMesh.onResults(onFaceMeshResults);
+        
+        addLogEntry('Face mesh model loaded successfully', 'info');
+        console.log('Face mesh model initialized:', faceMesh);
+        
+        // Start webcam after model is loaded
+        await startWebcam();
+      } catch (error) {
+        addLogEntry(`Error loading face mesh model: ${error.message}`, 'error');
+        console.error('Face mesh model error:', error);
+      }
+    }
+
+    // Function to initialize RL system
+    async function initializeRLSystem() {
+      return new Promise((resolve, reject) => {
+        waitForRLModule(() => {
+          try {
+            if (!window.EyeGuardianRL) {
+              throw new Error('RL module not found');
+            }
+            
+            rlSystem = window.EyeGuardianRL.initEyeGuardianRL({
+              learningRate: RL_CONFIG.learningRate,
+              discountFactor: RL_CONFIG.discountFactor,
+              addDashboard: false,
+              addStyles: false
+            });
+            
+            if (!rlSystem) {
+              throw new Error('Failed to initialize RL system');
+            }
+            
+            isRLSystemReady = true;
+            addLogEntry('RL system initialized with enhanced states and actions', 'info');
+            console.log('RL system initialized:', rlSystem);
+            
+            // Update the metrics display
+            currentStateEl.textContent = 'Initializing...';
+            
+            resolve();
+          } catch (error) {
+            console.error('Error initializing RL system:', error);
+            addLogEntry(`Error initializing RL system: ${error.message}`, 'error');
+            reject(error);
+          }
+        });
+      });
+    }
+
+    // Function to start the webcam
+    async function startWebcam() {
+      addLogEntry('Starting webcam...', 'info');
+      
+      // Initialize metrics display
+      initializeMetricsDisplay();
+      
+      const constraints = {
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'user'
+        }
+      };
+      
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+        
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+          };
+        });
+        
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Start tracking
+        isTracking = true;
+        startButton.disabled = true;
+        stopButton.disabled = false;
+        
+        // Initialize session stats
+        sessionStartTime = Date.now();
+        
+        // Start processing video frames
+        processVideoFrame();
+        
+        addLogEntry('Webcam started successfully', 'info');
+      } catch (error) {
+        addLogEntry(`Error accessing webcam: ${error.message}`, 'error');
+        console.error('Error accessing webcam:', error);
+      }
+    }
+    
+    // Function to process video frames
+    async function processVideoFrame() {
+      if (!isTracking) return;
+      
+      try {
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          await faceMesh.send({ image: video });
+        }
+        animationFrameId = requestAnimationFrame(processVideoFrame);
+      } catch (error) {
+        console.error('Error processing video frame:', error);
+        addLogEntry(`Error processing video frame: ${error.message}`, 'error');
+      }
+    }
+    
+    // Function to stop tracking
+    function stopTracking() {
+      isTracking = false;
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      
+      // Stop the video stream
+      if (video.srcObject) {
+        const tracks = video.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      
+      addLogEntry('Eye tracking stopped', 'info');
+      
+      // Show statistics
+      showStatistics();
+    }
+    
+    // Function to calculate screen distance
+    function calculateScreenDistance(landmarks) {
+      // Get facial landmarks for distance calculation
+      const leftEye = landmarks[33];  // Left eye corner
+      const rightEye = landmarks[263]; // Right eye corner
+      
+      // Calculate inter-pupillary distance (IPD) in pixels
+      const ipdPixels = Math.sqrt(
+        Math.pow((rightEye.x - leftEye.x) * canvas.width, 2) +
+        Math.pow((rightEye.y - leftEye.y) * canvas.height, 2)
+      );
+      
+      // Average human IPD is approximately 63mm (6.3cm)
+      const AVERAGE_IPD_CM = 6.3;
+      
+      // Calculate distance using similar triangles principle
+      // distance = (known_width * focal_length) / pixel_width
+      // For a typical webcam, focal length is approximately 500 pixels
+      const FOCAL_LENGTH = 500;
+      const estimatedDistance = (AVERAGE_IPD_CM * FOCAL_LENGTH) / ipdPixels;
+      
+      // Apply smoothing to reduce jitter
+      const SMOOTHING_FACTOR = 0.3;
+      const smoothedDistance = lastDistance ? 
+        (lastDistance * (1 - SMOOTHING_FACTOR) + estimatedDistance * SMOOTHING_FACTOR) :
+        estimatedDistance;
+      
+      lastDistance = smoothedDistance;
+      
+      // Clamp between reasonable values (30cm to 100cm)
+      return Math.min(Math.max(smoothedDistance, 30), 100);
+    }
+
+    // Function to calculate smoothed EAR
+    function calculateSmoothedEAR(ear) {
+      lastEARValues.push(ear);
+      if (lastEARValues.length > EAR_SMOOTHING_WINDOW) {
+        lastEARValues.shift();
+      }
+      return lastEARValues.reduce((a, b) => a + b, 0) / lastEARValues.length;
+    }
+
+    // Function to update adaptive threshold
+    function updateAdaptiveThreshold(ear) {
+      recentEARValues.push(ear);
+      if (recentEARValues.length > ADAPTIVE_THRESHOLD_WINDOW) {
+        recentEARValues.shift();
+      }
+      
+      if (recentEARValues.length >= ADAPTIVE_THRESHOLD_WINDOW) {
+        // Calculate mean and standard deviation
+        const mean = recentEARValues.reduce((a, b) => a + b, 0) / recentEARValues.length;
+        const variance = recentEARValues.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / recentEARValues.length;
+        const stdDev = Math.sqrt(variance);
+        
+        // Update threshold based on statistics
+        currentEARThreshold = Math.max(
+          MIN_EAR_THRESHOLD,
+          Math.min(
+            MAX_EAR_THRESHOLD,
+            mean - (stdDev * 0.5)
+          )
+        );
+      }
+    }
+
+    // Function to handle blink detection
+    function handleBlinkDetection(ear, timestamp) {
+      // Simple blink detection: if EAR is below threshold, eye is closed
+      if (ear < EAR_THRESHOLD) {
+        if (!isEyeClosed) {
+          // Eye just closed
+          isEyeClosed = true;
+          eyeClosedStartTime = timestamp;
+          
+          // Draw eye state indicator
+          ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+          ctx.fillRect(10, 10, 100, 30);
+          ctx.fillStyle = 'white';
+          ctx.font = '16px Arial';
+          ctx.fillText('Eye Closed', 15, 30);
+        }
+      } else {
+        if (isEyeClosed) {
+          // Eye just opened (blink completed)
+          isEyeClosed = false;
+          eyeClosedDuration = timestamp - eyeClosedStartTime;
+          
+          // Simple validation: check if blink duration is reasonable
+          if (eyeClosedDuration >= MIN_BLINK_DURATION && eyeClosedDuration <= MAX_BLINK_DURATION) {
+            // Update blink count
+            totalBlinks++;
+            
+            // Update blink history
+            const oneMinuteAgo = timestamp - 60000;
+            blinkHistory = blinkHistory.filter(time => time > oneMinuteAgo);
+            blinkHistory.push(timestamp);
+            
+            // Update both displays with the same information
+            const blinkRate = blinkHistory.length;
+            currentBlinkRateEl.textContent = `${blinkRate} blinks/min`;
+            blinkCounterEl.textContent = `Blinks: ${totalBlinks} (${blinkRate}/min)`;
+            
+            // Update the metric blink counter
+            const metricBlinkCounter = document.querySelector('.metrics .blink-counter');
+            if (metricBlinkCounter) {
+              metricBlinkCounter.textContent = `Blinks: ${totalBlinks} (${blinkRate}/min)`;
+            }
+            
+            // Log to console for debugging
+            console.log('Blink detected! Total:', totalBlinks, 'Rate:', blinkRate, '/min');
+          }
+        }
+      }
+
+      // Check for prolonged staring
+      checkProlongedStaring(timestamp);
+    }
+
+    // Function to update metrics
+    function updateMetrics(blinkRate, screenDistance) {
+      // Update blink rate display
+      const currentTime = Date.now();
+      const oneMinuteAgo = currentTime - 60000;
+      blinkHistory = blinkHistory.filter(time => time > oneMinuteAgo);
+      const currentBlinkRate = blinkHistory.length;
+      
+      // Update all blink displays with the same information
+      currentBlinkRateEl.textContent = `${currentBlinkRate} blinks/min`;
+      blinkCounterEl.textContent = `Blinks: ${totalBlinks} (${currentBlinkRate}/min)`;
+      
+      // Update the metric blink counter
+      const metricBlinkCounter = document.querySelector('.metrics .blink-counter');
+      if (metricBlinkCounter) {
+        metricBlinkCounter.textContent = `Blinks: ${totalBlinks} (${currentBlinkRate}/min)`;
+      }
+      
+      // Update screen distance display
+      screenDistanceEl.textContent = `${(screenDistance || 0).toFixed(1)} cm`;
+      
+      // Update RL system state if available
+      if (currentState !== 'initializing') {
+        currentStateEl.textContent = currentState;
+      }
+      
+      // Force display update
+      currentBlinkRateEl.style.display = 'none';
+      currentBlinkRateEl.offsetHeight;
+      currentBlinkRateEl.style.display = '';
+      
+      blinkCounterEl.style.display = 'none';
+      blinkCounterEl.offsetHeight;
+      blinkCounterEl.style.display = '';
+      
+      if (metricBlinkCounter) {
+        metricBlinkCounter.style.display = 'none';
+        metricBlinkCounter.offsetHeight;
+        metricBlinkCounter.style.display = '';
+      }
+    }
+
+    // Function to check for prolonged staring
+    function checkProlongedStaring(timestamp) {
+      if (!isEyeClosed) { // Only check if eyes are open
+        const timeSinceLastBlink = timestamp - lastValidBlinkTime;
+        
+        if (timeSinceLastBlink > MAX_STARING_DURATION) {
+          // Check if enough time has passed since last staring alert
+          if (timestamp - lastStaringAlert > staringAlertCooldown) {
+            if (isVoiceEnabled) {
+              speakMessage("You've been staring at the screen for too long. Please take a break and blink your eyes.");
+            } else {
+              const alert = document.createElement('div');
+              alert.className = 'blink-alert';
+              alert.textContent = 'Prolonged staring detected! Please blink your eyes.';
+              document.body.appendChild(alert);
+              
+              setTimeout(() => {
+                alert.remove();
+              }, 3000);
+            }
+            
+            addLogEntry('Prolonged staring detected - alert triggered', 'warning');
+            lastStaringAlert = timestamp;
+          }
+        }
+      }
+    }
+
+    // Function to process face mesh results
+    function onFaceMeshResults(results) {
+      try {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw video frame
+        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+        
+        if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+          const landmarks = results.multiFaceLandmarks[0];
+          const frameTime = Date.now();
+          
+          // Validate landmarks before drawing
+          if (!landmarks || !Array.isArray(landmarks) || landmarks.length === 0) {
+            throw new Error('Invalid landmarks data');
+          }
+          
+          // Draw face mesh points
+          for (const landmark of landmarks) {
+            if (!landmark || typeof landmark.x !== 'number' || typeof landmark.y !== 'number') {
+              continue; // Skip invalid landmarks
+            }
+            ctx.beginPath();
+            ctx.arc(
+              landmark.x * canvas.width,
+              landmark.y * canvas.height,
+              1, // point size
+              0,
+              2 * Math.PI
+            );
+            ctx.fillStyle = '#C0C0C0';
+            ctx.fill();
+          }
+          
+          // Draw face mesh connections
+          ctx.strokeStyle = '#C0C0C0';
+          ctx.lineWidth = 1;
+          
+          // Draw face oval
+          for (let i = 0; i < FACEMESH_FACE_OVAL.length - 1; i++) {
+            const startIdx = FACEMESH_FACE_OVAL[i];
+            const endIdx = FACEMESH_FACE_OVAL[i + 1];
+            if (landmarks[startIdx] && landmarks[endIdx]) {
+              const start = landmarks[startIdx];
+              const end = landmarks[endIdx];
+              ctx.beginPath();
+              ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
+              ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+              ctx.stroke();
+            }
+          }
+          
+          // Draw eyes
+          for (let i = 0; i < FACEMESH_LEFT_EYE.length - 1; i++) {
+            const startIdx = FACEMESH_LEFT_EYE[i];
+            const endIdx = FACEMESH_LEFT_EYE[i + 1];
+            if (landmarks[startIdx] && landmarks[endIdx]) {
+              const start = landmarks[startIdx];
+              const end = landmarks[endIdx];
+              ctx.beginPath();
+              ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
+              ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+              ctx.stroke();
+            }
+          }
+          
+          for (let i = 0; i < FACEMESH_RIGHT_EYE.length - 1; i++) {
+            const startIdx = FACEMESH_RIGHT_EYE[i];
+            const endIdx = FACEMESH_RIGHT_EYE[i + 1];
+            if (landmarks[startIdx] && landmarks[endIdx]) {
+              const start = landmarks[startIdx];
+              const end = landmarks[endIdx];
+              ctx.beginPath();
+              ctx.moveTo(start.x * canvas.width, start.y * canvas.height);
+              ctx.lineTo(end.x * canvas.width, end.y * canvas.height);
+              ctx.stroke();
+            }
+          }
+          
+          // Calculate screen distance
+          const screenDistance = calculateScreenDistance(landmarks);
+          
+          // Calculate eye aspect ratio (EAR) with improved accuracy
+          const rightEyeEAR = calculateEAR(landmarks, RIGHT_EYE);
+          const leftEyeEAR = calculateEAR(landmarks, LEFT_EYE);
+          const avgEAR = (rightEyeEAR + leftEyeEAR) / 2;
+          
+          // Update metrics every second
+          if (frameTime - lastBlinkRateUpdate > 1000) {
+            // Calculate blinks per minute using a rolling window
+            const oneMinuteAgo = frameTime - 60000; // 60 seconds ago
+            blinkHistory = blinkHistory.filter(time => time > oneMinuteAgo);
+            const currentBlinkRate = blinkHistory.length;
+            
+            // Update metrics immediately with both values
+            updateMetrics(currentBlinkRate, screenDistance);
+            
+            // Process metrics with RL system
+            processMetricsWithRL({
+              blinkRate: currentBlinkRate,
+              screenDistance: screenDistance
+            });
+            
+            // Update distance status
+            updateDistanceStatus(screenDistance);
+            
+            lastBlinkRateUpdate = frameTime;
+          }
+          
+          // Update debug info
+          updateDebugInfo({
+            'Right Eye EAR': rightEyeEAR.toFixed(3),
+            'Left Eye EAR': leftEyeEAR.toFixed(3),
+            'Average EAR': avgEAR.toFixed(3),
+            'EAR Threshold': currentEARThreshold,
+            'Eye State': avgEAR < currentEARThreshold ? 'Closed' : 'Open',
+            'Screen Distance': `${screenDistance.toFixed(1)} cm`,
+            'Total Blinks': totalBlinks,
+            'Blink History Length': blinkHistory.length,
+            'Consecutive Low EAR': consecutiveLowEARCount,
+            'Consecutive High EAR': consecutiveHighEARCount
+          });
+          
+          // Detect eye state change
+          handleBlinkDetection(avgEAR, frameTime);
+        } else {
+          // No face detected
+          updateDebugInfo({
+            'Status': 'No face detected'
+          });
+          // Update metrics with default values when no face is detected
+          updateMetrics(0, 0);
+        }
+      } catch (error) {
+        console.error('Error in onFaceMeshResults:', error);
+        addLogEntry(`Error processing face mesh: ${error.message}`, 'error');
+      }
+    }
+    
+    // Function to calculate Eye Aspect Ratio (EAR)
+    function calculateEAR(landmarks, eyeIndices) {
+      // Simple EAR calculation
+      const A = distance(landmarks[eyeIndices[1]], landmarks[eyeIndices[5]]);
+      const B = distance(landmarks[eyeIndices[2]], landmarks[eyeIndices[4]]);
+      const C = distance(landmarks[eyeIndices[0]], landmarks[eyeIndices[3]]);
+      
+      // Calculate EAR
+      return (A + B) / (2.0 * C);
+    }
+    
+    // Function to calculate distance between two points
+    function distance(point1, point2) {
+      return Math.sqrt(
+        Math.pow(point1.x - point2.x, 2) + 
+        Math.pow(point1.y - point2.y, 2)
+      );
+    }
+    
+    // Function to update distance status
+    function updateDistanceStatus(distance) {
+      const statusIndicator = document.querySelector('.status-indicator');
+      const statusText = document.querySelector('.distance-status-text');
+      const screenDistanceEl = document.getElementById('screen-distance');
+      
+      // Update the distance value display
+      screenDistanceEl.textContent = `${distance.toFixed(1)} cm`;
+      
+      // Update status based on distance
+      if (distance < 50) {
+        statusIndicator.className = 'status-indicator status-danger';
+        statusText.textContent = 'Too Close';
+        statusText.style.color = 'var(--status-danger-text)';
+        addLogEntry(`Warning: Too close to screen (${distance.toFixed(1)} cm)`, 'warning');
+        if (isVoiceEnabled) {
+          speakMessage("Please move back from the screen");
+        } else {
+          const alert = document.createElement('div');
+          alert.className = 'blink-alert';
+          alert.textContent = 'Too close to screen! Please move back.';
+          document.body.appendChild(alert);
+          
+          setTimeout(() => {
+            alert.remove();
+          }, 3000);
+        }
+      } else if (distance > 80) {
+        statusIndicator.className = 'status-indicator status-warning';
+        statusText.textContent = 'Too Far';
+        statusText.style.color = 'var(--status-warning-text)';
+        addLogEntry(`Warning: Too far from screen (${distance.toFixed(1)} cm)`, 'warning');
+      } else {
+        statusIndicator.className = 'status-indicator status-good';
+        statusText.textContent = 'Good Distance';
+        statusText.style.color = 'var(--status-good-text)';
+      }
+    }
+    
+    // Function to update debug information
+    function updateDebugInfo(info) {
+      debugEl.innerHTML = '';
+      for (const [key, value] of Object.entries(info)) {
+        const row = document.createElement('div');
+        row.textContent = `${key}: ${value}`;
+        debugEl.appendChild(row);
+      }
+    }
+    
+    // Function to update metrics
+    function updateMetrics(blinkRate, screenDistance) {
+      // Update blink rate display
+      const currentTime = Date.now();
+      const oneMinuteAgo = currentTime - 60000;
+      blinkHistory = blinkHistory.filter(time => time > oneMinuteAgo);
+      
+      currentBlinkRateEl.textContent = `${blinkHistory.length} blinks/min`;
+      blinkCounterEl.textContent = `Blinks: ${totalBlinks} (${blinkHistory.length}/min)`;
+      
+      // Update screen distance display
+      screenDistanceEl.textContent = `${(screenDistance || 0).toFixed(1)} cm`;
+      
+      // Update RL system state if available
+      if (currentState !== 'initializing') {
+        currentStateEl.textContent = currentState;
+      }
+      
+      // Force display update
+      currentBlinkRateEl.style.display = 'none';
+      currentBlinkRateEl.offsetHeight;
+      currentBlinkRateEl.style.display = '';
+      
+      blinkCounterEl.style.display = 'none';
+      blinkCounterEl.offsetHeight;
+      blinkCounterEl.style.display = '';
+    }
+    
+    // Function to add a log entry
+    function addLogEntry(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      
+      const time = document.createElement('span');
+      time.className = 'log-time';
+      time.textContent = new Date().toLocaleTimeString();
+      
+      const text = document.createElement('span');
+      text.textContent = message;
+      
+      entry.appendChild(time);
+      entry.appendChild(text);
+      
+      logEl.appendChild(entry);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Function to check if user is logged in
+    async function checkUserLogin() {
+      try {
+        // Check localStorage for authentication state
+        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const userEmail = localStorage.getItem('userEmail');
+        
+        if (!isLoggedIn || !userEmail) {
+          return false;
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        return false;
+      }
+    }
+
+    // Function to show login prompt
+    function showLoginPrompt() {
+      const loginPrompt = document.createElement('div');
+      loginPrompt.className = 'login-prompt';
+      loginPrompt.innerHTML = `
+        <div class="login-prompt-content">
+          <h3>Login Required</h3>
+          <p>Please login to access Eye Guardian monitoring.</p>
+          <div class="login-prompt-buttons">
+            <button id="login-button" class="action-button">Login</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(loginPrompt);
+      
+      // Add event listener
+      document.getElementById('login-button').addEventListener('click', () => {
+        // Navigate to the login page
+        window.location.href = 'login.html';
+      });
+    }
+
+    // Function to disable monitoring features
+    function disableMonitoringFeatures() {
+      // Hide the video container and controls
+      document.querySelector('.video-container').style.display = 'none';
+      document.querySelector('.controls').style.display = 'none';
+      document.querySelector('.metrics').style.display = 'none';
+      document.querySelector('.log-section').style.display = 'none';
+      document.querySelector('.debug-info').style.display = 'none';
+      
+      // Show login prompt
+      showLoginPrompt();
+    }
+
+    // Function to enable monitoring features
+    function enableMonitoringFeatures() {
+      // Show all monitoring features
+      document.querySelector('.video-container').style.display = 'block';
+      document.querySelector('.controls').style.display = 'flex';
+      document.querySelector('.metrics').style.display = 'grid';
+      document.querySelector('.log-section').style.display = 'block';
+      document.querySelector('.debug-info').style.display = 'block';
+    }
+
+    // Check login status when page loads
+    window.addEventListener('load', async () => {
+      const isLoggedIn = await checkUserLogin();
+      
+      if (!isLoggedIn) {
+        disableMonitoringFeatures();
+      } else {
+        enableMonitoringFeatures();
+        initializeMetricsDisplay();
+        if (isVoiceEnabled) {
+          speakMessage("Eye Guardian system initialized. Voice reminders are enabled.");
+        }
+      }
+    });
+
+    // Event listeners
+    startButton.addEventListener('click', async () => {
+      try {
+        // Check if user is logged in
+        const isLoggedIn = await checkUserLogin();
+        
+        if (!isLoggedIn) {
+          disableMonitoringFeatures();
+          return;
+        }
+        
+        // Initialize the RL system first
+        await initializeRLSystem();
+        
+        // Then load the face mesh model
+        await loadFaceMeshModel();
+        
+        addLogEntry('System initialization complete', 'info');
+      } catch (error) {
+        console.error('Error during initialization:', error);
+        addLogEntry(`Initialization error: ${error.message}`, 'error');
+        startButton.disabled = false;
+        stopButton.disabled = true;
+      }
+    });
+    
+    stopButton.addEventListener('click', stopTracking);
+    
+    resetRlButton.addEventListener('click', () => {
+      if (rlSystem && typeof rlSystem.resetQTable === 'function') {
+        rlSystem.resetQTable();
+        currentBlinkRateEl.textContent = '-';
+        currentStateEl.textContent = '-';
+        screenDistanceEl.textContent = '-';
+        totalBlinks = 0;
+        blinkCounterEl.textContent = 'Blinks: 0';
+        blinkHistory = [];
+        addLogEntry('RL system and blink counter reset', 'info');
+      } else {
+        addLogEntry('RL system not initialized', 'error');
+      }
+    });
+    
+    // Initial log entry
+    addLogEntry('Eye Guardian Camera Test initialized', 'info');
+
+    // Function to speak a message
+    function speakMessage(message) {
+      if (!isVoiceEnabled) return;
+      
+      const currentTime = Date.now();
+      if (currentTime - lastVoiceReminder < voiceReminderCooldown) {
+        return; // Respect cooldown period
+      }
+      
+      // Cancel any ongoing speech
+      speechSynthesis.cancel();
+      
+      // Create and configure speech
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+      
+      // Speak the message
+      speechSynthesis.speak(utterance);
+      
+      lastVoiceReminder = currentTime;
+    }
+
+    // Function to update the processMetricsWithRL function to remove health dashboard updates
+    function processMetricsWithRL(metrics) {
+      if (!isRLSystemReady || !rlSystem) return;
+      
+      // Update current metrics
+      lastMetrics = metrics;
+      
+      // Process metrics with RL system
+      const updateInfo = rlSystem.processMetrics({
+        blinkRate: metrics.blinkRate,
+        screenDistance: metrics.screenDistance
+      });
+      
+      // Handle RL action if available
+      if (updateInfo && updateInfo.action) {
+        handleRLAction(updateInfo.action, updateInfo.newState);
+      }
+      
+      // Update current state
+      if (updateInfo && updateInfo.newState) {
+        currentState = updateInfo.newState;
+        currentStateEl.textContent = currentState;
+        
+        // Log state transition
+        addLogEntry(`State: ${currentState}`, 'info');
+      }
+    }
+
+    // Function to handle RL actions with voice
+    function handleRLAction(action, state) {
+      const currentTime = Date.now();
+      if (currentTime - lastActionTime < RL_CONFIG.actionCooldown) {
+        return; // Ignore actions during cooldown period
+      }
+      
+      lastActionTime = currentTime;
+      rlStats.totalActions++;
+      
+      switch (action) {
+        case 'blink_reminder':
+          showBlinkAlert();
+          if (isVoiceEnabled) {
+            speakMessage("Remember to blink regularly to keep your eyes moist");
+          }
+          addLogEntry('RL Action: Blink reminder shown', 'info');
+          break;
+        case 'distance_reminder':
+          showDistanceAlert();
+          if (isVoiceEnabled) {
+            speakMessage("Please maintain a safe distance from the screen");
+          }
+          addLogEntry('RL Action: Distance reminder shown', 'info');
+          break;
+        case 'combined_reminder':
+          showCombinedAlert();
+          if (isVoiceEnabled) {
+            speakMessage("Remember to blink regularly and maintain a safe distance from the screen");
+          }
+          addLogEntry('RL Action: Combined reminder shown', 'info');
+          break;
+        case 'no_action':
+          addLogEntry('RL Action: No action needed', 'info');
+          break;
+        default:
+          addLogEntry(`RL Action: Unknown action "${action}"`, 'warning');
+      }
+      
+      // Update RL stats
+      rlStats.lastAction = action;
+      rlStats.lastState = state;
+    }
+
+    // Function to show blink alert
+    function showBlinkAlert() {
+      if (!isVoiceEnabled) {
+        const alert = document.createElement('div');
+        alert.className = 'blink-alert';
+        alert.textContent = 'Remember to blink!';
+        document.body.appendChild(alert);
+        
+        // Remove alert after 3 seconds
+        setTimeout(() => {
+          alert.remove();
+        }, 3000);
+      }
+      addLogEntry('Blink reminder shown', 'warning');
+    }
+
+    // Function to show distance alert
+    function showDistanceAlert() {
+      if (!isVoiceEnabled) {
+        const alert = document.createElement('div');
+        alert.className = 'blink-alert';
+        alert.textContent = 'Too close! Please maintain a safe distance from the screen';
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+          alert.remove();
+        }, 3000);
+      }
+    }
+
+    // Function to show combined alert
+    function showCombinedAlert() {
+      if (!isVoiceEnabled) {
+        const alert = document.createElement('div');
+        alert.className = 'blink-alert';
+        alert.textContent = 'Remember to blink and maintain safe distance';
+        document.body.appendChild(alert);
+        
+        setTimeout(() => {
+          alert.remove();
+        }, 3000);
+      }
+    }
+
+    // Function to check if face landmarks are valid (not in the air)
+    function isValidFaceLandmarks(landmarks) {
+      // Check if landmarks are within reasonable bounds
+      // This helps filter out false detections
+      
+      // Check if nose is within the frame
+      const nose = landmarks[1];
+      if (nose.x < 0.2 || nose.x > 0.8 || nose.y < 0.2 || nose.y > 0.8) {
+        return false;
+      }
+      
+      // Check if face is at a reasonable size (not too far or too close)
+      const leftEye = landmarks[33];
+      const rightEye = landmarks[263];
+      const eyeDistance = Math.sqrt(
+        Math.pow((rightEye.x - leftEye.x) * canvas.width, 2) +
+        Math.pow((rightEye.y - leftEye.y) * canvas.height, 2)
+      );
+      
+      // Face should be at a reasonable size (not too small or too large)
+      if (eyeDistance < 100 || eyeDistance > 250) {
+        return false;
+      }
+      
+      // Check if face is roughly centered
+      const faceCenterX = (leftEye.x + rightEye.x) / 2;
+      if (faceCenterX < 0.35 || faceCenterX > 0.65) {
+        return false;
+      }
+      
+      // Check if face is roughly level (not tilted too much)
+      const leftEyeY = leftEye.y;
+      const rightEyeY = rightEye.y;
+      const eyeTilt = Math.abs(leftEyeY - rightEyeY);
+      if (eyeTilt > 0.05) {
+        return false;
+      }
+      
+      return true;
+    }
+
+    // Add voice control button to the controls section
+    const controlsDiv = document.querySelector('.controls');
+    const voiceToggleButton = document.getElementById('voice-toggle');
+
+    // Add event listener for voice toggle
+    voiceToggleButton.addEventListener('click', () => {
+      isVoiceEnabled = !isVoiceEnabled;
+      voiceToggleButton.textContent = isVoiceEnabled ? 'Voice On' : 'Voice Off';
+      addLogEntry(`Voice reminders ${isVoiceEnabled ? 'enabled' : 'disabled'}`, 'info');
+      if (isVoiceEnabled) {
+        speakMessage("Voice reminders enabled");
+      }
+    });
+
+    // Initial voice test
+    window.addEventListener('load', () => {
+      initializeMetricsDisplay();
+      if (isVoiceEnabled) {
+        speakMessage("Eye Guardian system initialized. Voice reminders are enabled.");
+      }
+    });
+
+    // Add statistics modal HTML
+    const statsModal = document.createElement('div');
+    statsModal.className = 'stats-modal';
+    statsModal.innerHTML = `
+      <div class="stats-content">
+        <button class="close-stats">&times;</button>
+        <h2 class="stats-header">Session Summary</h2>
+        <div id="stats-sections"></div>
+      </div>
+    `;
+    document.body.appendChild(statsModal);
+
+    // Function to calculate session duration
+    function calculateSessionDuration() {
+      if (!sessionStartTime) return 0;
+      return Math.floor((Date.now() - sessionStartTime) / 1000); // in seconds
+    }
+
+    // Function to format duration
+    function formatDuration(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes}m ${remainingSeconds}s`;
+    }
+
+    // Function to show statistics
+    function showStatistics() {
+      const sessionDuration = calculateSessionDuration();
+      // Calculate blink rate using the actual blink history
+      const oneMinuteAgo = Date.now() - 60000;
+      const recentBlinks = blinkHistory.filter(time => time > oneMinuteAgo);
+      const avgBlinkRate = recentBlinks.length; // This gives us blinks per minute
+      
+      const statsSections = document.getElementById('stats-sections');
+      
+      // Clear previous stats
+      statsSections.innerHTML = '';
+
+      // Session Duration Section
+      const durationSection = document.createElement('div');
+      durationSection.className = 'stats-section';
+      durationSection.innerHTML = `
+        <div class="stats-title">Session Duration</div>
+        <div class="stats-value">${formatDuration(sessionDuration)}</div>
+      `;
+      statsSections.appendChild(durationSection);
+
+      // Blink Rate Section
+      const blinkSection = document.createElement('div');
+      blinkSection.className = 'stats-section';
+      let blinkSuggestion = '';
+      if (avgBlinkRate < 12) {
+        blinkSuggestion = 'Your blink rate is below the recommended minimum. Try to blink more frequently to keep your eyes moist and prevent eye strain.';
+        blinkSection.classList.add('stats-warning');
+      } else if (avgBlinkRate > 30) {
+        blinkSuggestion = 'Your blink rate is higher than average. This might indicate eye fatigue or discomfort.';
+        blinkSection.classList.add('stats-warning');
+      } else {
+        blinkSuggestion = 'Great job! Your blink rate is within the healthy range.';
+        blinkSection.classList.add('stats-suggestion');
+      }
+      blinkSection.innerHTML = `
+        <div class="stats-title">Blink Rate</div>
+        <div class="stats-value">${avgBlinkRate} blinks per minute</div>
+        <div class="stats-suggestion">${blinkSuggestion}</div>
+      `;
+      statsSections.appendChild(blinkSection);
+
+      // Screen Distance Section
+      const distanceSection = document.createElement('div');
+      distanceSection.className = 'stats-section';
+      let distanceSuggestion = '';
+      if (lastDistance < 50) {
+        distanceSuggestion = 'You were sitting too close to the screen. Maintain a distance of at least 50cm to reduce eye strain.';
+        distanceSection.classList.add('stats-danger');
+      } else if (lastDistance > 80) {
+        distanceSuggestion = 'You were sitting too far from the screen. Try to maintain a distance between 50-80cm for optimal viewing.';
+        distanceSection.classList.add('stats-warning');
+      } else {
+        distanceSuggestion = 'Excellent! You maintained a good viewing distance.';
+        distanceSection.classList.add('stats-suggestion');
+      }
+      distanceSection.innerHTML = `
+        <div class="stats-title">Average Screen Distance</div>
+        <div class="stats-value">${lastDistance ? lastDistance.toFixed(1) : 'N/A'} cm</div>
+        <div class="stats-suggestion">${distanceSuggestion}</div>
+      `;
+      statsSections.appendChild(distanceSection);
+
+      // Staring Duration Section
+      const staringSection = document.createElement('div');
+      staringSection.className = 'stats-section';
+      const totalStaringAlerts = Math.floor((Date.now() - sessionStartTime) / staringAlertCooldown);
+      let staringSuggestion = '';
+      if (totalStaringAlerts > 3) {
+        staringSuggestion = 'You had several prolonged staring sessions. Remember to take regular breaks and follow the 20-20-20 rule: every 20 minutes, look at something 20 feet away for 20 seconds.';
+        staringSection.classList.add('stats-warning');
+      } else {
+        staringSuggestion = 'Good job! You maintained healthy screen viewing habits.';
+        staringSection.classList.add('stats-suggestion');
+      }
+      staringSection.innerHTML = `
+        <div class="stats-title">Prolonged Staring Incidents</div>
+        <div class="stats-value">${totalStaringAlerts} incidents</div>
+        <div class="stats-suggestion">${staringSuggestion}</div>
+      `;
+      statsSections.appendChild(staringSection);
+
+      // General Recommendations Section
+      const recommendationsSection = document.createElement('div');
+      recommendationsSection.className = 'stats-section';
+      recommendationsSection.innerHTML = `
+        <div class="stats-title">General Recommendations</div>
+        <div class="stats-suggestion">
+          <ul>
+            <li>Take regular breaks from screen time</li>
+            <li>Follow the 20-20-20 rule</li>
+            <li>Ensure proper lighting in your workspace</li>
+            <li>Adjust screen brightness to match ambient light</li>
+            <li>Consider using blue light filters if working in the evening</li>
+          </ul>
+        </div>
+      `;
+      statsSections.appendChild(recommendationsSection);
+
+      // Show the modal
+      statsModal.style.display = 'flex';
+    }
+
+    // Function to hide statistics
+    function hideStatistics() {
+      statsModal.style.display = 'none';
+    }
+
+    // Add event listeners for the statistics modal
+    document.querySelector('.close-stats').addEventListener('click', hideStatistics);
+    statsModal.addEventListener('click', (e) => {
+      if (e.target === statsModal) {
+        hideStatistics();
+      }
+    });
+  </script>
+</body>
+</html> 

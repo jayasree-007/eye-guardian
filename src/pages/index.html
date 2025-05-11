@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eye Guardian - Protect Your Vision</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e54c8;
+            --secondary-color: #f8f9fa;
+            --text-color: #333;
+            --bg-color: #ffffff;
+            --nav-bg-color: #4e54c8;
+            --card-bg-color: #f8f9fa;
+            --footer-bg-color: #333;
+            --footer-text-color: white;
+            --footer-link-color: #ccc;
+        }
+        
+        /* Dark theme variables */
+        [data-theme="dark"] {
+            --primary-color: #8f94fb;
+            --secondary-color: #2d2d2d;
+            --text-color: #f0f0f0;
+            --bg-color: #1a1a1a;
+            --nav-bg-color: #1a1a1a;
+            --card-bg-color: #2d2d2d;
+            --footer-bg-color: #121212;
+            --footer-text-color: #f0f0f0;
+            --footer-link-color: #aaa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Navigation */
+        nav {
+            background-color: var(--nav-bg-color);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #f0f0f0;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .user-info {
+            color: white;
+            margin-right: 1rem;
+        }
+        
+        .user-email {
+            font-weight: 500;
+        }
+        
+        .btn-logout {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-logout:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: white;
+            color: var(--primary-color);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 8rem 0 4rem;
+            background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+            color: white;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        /* Features Preview */
+        .features {
+            padding: 4rem 0;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .feature-card {
+            background: var(--card-bg-color);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s, background-color 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--footer-bg-color);
+            color: var(--footer-text-color);
+            padding: 2rem 0;
+            margin-top: 4rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 1rem;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer-section a {
+            color: var(--footer-link-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section a:hover {
+            color: white;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        /* Brightness Control */
+        .brightness-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+
+        .brightness-slider {
+            width: 80px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .brightness-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .brightness-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .brightness-icon {
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-toggle i {
+            font-size: 1rem;
+        }
+
+        .theme-toggle .toggle-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container nav-container">
+            <a href="index.html" class="logo">Eye Guardian</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="index.html">About</a>
+                <a href="index.html">Features</a>
+                <a href="eye-guardian-camera-test.html">Monitor</a>
+                <div class="brightness-control">
+                    <i class="fas fa-sun brightness-icon"></i>
+                    <input type="range" class="brightness-slider" min="0" max="100" value="100">
+                </div>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                    <span class="toggle-text">Dark Mode</span>
+                </button>
+            </div>
+            <div class="auth-buttons">
+                <div id="userInfo" class="user-info" style="display: none;">
+                    Welcome, <span class="user-email" id="userEmail"></span>
+                    <button class="btn-logout" onclick="logout()">Logout</button>
+                </div>
+                <div id="loginButtons" class="auth-buttons">
+                    <a href="login.html" class="btn btn-secondary">Login</a>
+                    <a href="signup.html" class="btn btn-primary">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Protect Your Vision with Eye Guardian</h1>
+            <p>An intelligent system that helps you maintain healthy eye habits while working on your computer.</p>
+            <a href="eye-guardian-camera-test.html" class="btn btn-primary">Start Monitoring</a>
+        </div>
+    </section>
+
+    <!-- Features Preview -->
+    <section class="features">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 2rem;">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h3>Blink Detection</h3>
+                    <p>Monitors your blink rate and reminds you to blink regularly to prevent eye strain.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-ruler"></i>
+                    </div>
+                    <h3>Screen Distance</h3>
+                    <p>Ensures you maintain a safe distance from your screen to protect your eyes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Real-time Analytics</h3>
+                    <p>Provides instant feedback and suggestions for better eye health habits.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h3>Eye Guardian</h3>
+                <p>Protecting your vision one blink at a time.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="index.html">About</a></li>
+                    <li><a href="index.html">Features</a></li>
+                    <li><a href="eye-guardian-camera-test.html">Monitor</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <ul>
+                    <li>Email: support@eyeguardian.com</li>
+                    <li>Phone: (123) 456-7890</li>
+                    <li>Address: 123 Eye Care St, Vision City</li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Check if user is logged in
+        window.onload = function() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            const userEmail = localStorage.getItem('userEmail');
+            
+            if (isLoggedIn === 'true' && userEmail) {
+                document.getElementById('loginButtons').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('userEmail').textContent = userEmail;
+            }
+
+            // Load saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                updateThemeToggle(savedTheme);
+            }
+        };
+        
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'index.html';
+        }
+
+        // Brightness control
+        const brightnessSlider = document.querySelector('.brightness-slider');
+        const body = document.body;
+        
+        // Load saved brightness value
+        const savedBrightness = localStorage.getItem('screenBrightness');
+        if (savedBrightness) {
+            brightnessSlider.value = savedBrightness;
+            updateBrightness(savedBrightness);
+        }
+        
+        brightnessSlider.addEventListener('input', (e) => {
+            const brightness = e.target.value;
+            updateBrightness(brightness);
+            localStorage.setItem('screenBrightness', brightness);
+        });
+        
+        function updateBrightness(value) {
+            // Convert value to a number between 0.3 and 1
+            const brightness = 0.3 + (value / 100) * 0.7;
+            body.style.filter = `brightness(${brightness})`;
+            // Also update the background color of the page
+            document.documentElement.style.backgroundColor = `rgba(0, 0, 0, ${(1 - brightness) * 0.5})`;
+        }
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeToggle(newTheme);
+        });
+        
+        function updateThemeToggle(theme) {
+            const icon = themeToggle.querySelector('i');
+            const text = themeToggle.querySelector('.toggle-text');
+            
+            if (theme === 'dark') {
+                icon.className = 'fas fa-sun';
+                text.textContent = 'Light Mode';
+            } else {
+                icon.className = 'fas fa-moon';
+                text.textContent = 'Dark Mode';
+            }
+        }
+    </script>
+</body>
+</html>

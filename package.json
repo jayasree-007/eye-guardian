@@ -1,0 +1,28 @@
+{
+  "name": "eye-guardian",
+  "version": "1.0.0",
+  "description": "A web-based eye health monitoring system",
+  "main": "server/server.py",
+  "scripts": {
+    "start": "python server/server.py",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "eye-health",
+    "computer-vision",
+    "reinforcement-learning",
+    "web-application"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs": "^3.11.0",
+    "@mediapipe/face_mesh": "^0.4.1633559619",
+    "@mediapipe/camera_utils": "^0.3.1632437807",
+    "@mediapipe/drawing_utils": "^0.3.1632437807"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^2.0.0"
+  }
+} 
