@@ -57,3 +57,11 @@ eye_guardian/
 ## License
 
 MIT License 
+
+## Preview
+
+Here’s a sneak peek of **Eye Guardian** in action:
+
+![Homepage](images/homepage.png)
+
+![Model](images/model.png)
